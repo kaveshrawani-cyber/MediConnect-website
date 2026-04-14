@@ -1,166 +1,235 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Appointment</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    background: linear-gradient(135deg, #e3f2fd, #f4f6f9);
+}
+
+/* Navbar */
+.navbar {
+    background: #2c3e50;
+    padding: 18px;
+    color: white;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Container */
+.container {
+    width: 90%;
+    max-width: 500px;
+    margin: 30px auto;
+}
+
+/* Card */
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    transition: 0.2s;
+}
+
+input:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Button */
+button {
+    width: 100%;
+    background: #3498db;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+/* Appointment cards */
+#appointments-list div {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 8px 0;
+    background: #f9f9f9;
+}
+
+/* Popup */
+.popup {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    display: none;
+}
+
+.success { background: #2ecc71; }
+.error   { background: #e74c3c; }
+
+</style>
 </head>
+
 <body>
 
-    <div class="navbar">Book Appointment</div>
+<div class="navbar">Book Appointment</div>
 
-    <div class="container">
-        <div class="card">
-            <h2>Fill Details</h2>
+<div class="container">
+    <div class="card">
+        <h2>Fill Details</h2>
 
-            <!-- Success Message (shown after booking) -->
-            <p id="success-msg" style="color: green; display: none;">✅ Appointment Request Sent!</p>
-            <p id="error-msg" style="color: red; display: none;">❌ Please fill in all fields.</p>
+        <p id="doctor-info" style="font-weight: bold;"></p>
 
-            <!-- Doctor info will show here -->
-            <p id="doctor-info" style="color: #2c3e50; font-weight: bold;"></p>
+        <input type="text" id="name" placeholder="Your Name">
+        <input type="text" id="phone" placeholder="Phone">
+        <input type="date" id="date">
 
-            <!-- Appointment Form -->
-            <div id="form-section">
-                <input type="text" id="name" placeholder="Your Name" required
-                       style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
+        <button onclick="bookAppointment()">Book Appointment</button>
 
-                <input type="text" id="phone" placeholder="Phone" required
-                       style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
-
-                <input type="date" id="date" required
-                       style="width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;">
-
-                <button onclick="bookAppointment()"
-                        style="background: #3498db; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px;">
-                    Book Appointment
-                </button>
-            </div>
-
-            <!-- Booked Appointments List -->
-            <div id="appointments-section" style="margin-top: 30px;">
-                <h3>Your Appointments</h3>
-                <div id="appointments-list">
-                    <p style="color: gray;">No appointments booked yet.</p>
-                </div>
-            </div>
+        <div id="appointments-section" style="margin-top: 30px;">
+            <h3>Your Appointments</h3>
+            <div id="appointments-list"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        // ✅ Doctor data (same as doctors.html)
-        const doctors = [
-            { id: 1, name: "Dr. Ayesha Khan",  speciality: "Cardiologist",  city: "Mumbai" },
-            { id: 2, name: "Dr. Rahul Sharma", speciality: "Dermatologist", city: "Thane"  },
-            { id: 3, name: "Dr. Priya Mehta",  speciality: "Pediatrician",  city: "Mumbai" },
-            { id: 4, name: "Dr. Suresh Patil", speciality: "Orthopedic",    city: "Thane"  },
-            // ✅ Add more doctors here (must match doctors.html)
-        ];
+<!-- Popup -->
+<div id="popup" class="popup"></div>
 
-        // Get doctor ID from URL (e.g. appointment.html?id=1)
-        const urlParams = new URLSearchParams(window.location.search);
-        const doctorId = parseInt(urlParams.get("id"));
+<script>
 
-        // Find the doctor
-        const selectedDoctor = doctors.find(doc => doc.id === doctorId);
+// Doctors data
+const doctors = [
+    { id: 1, name: "Dr. Ayesha Khan",  speciality: "Cardiologist",  city: "Mumbai" },
+    { id: 2, name: "Dr. Rahul Sharma", speciality: "Dermatologist", city: "Thane" },
+    { id: 3, name: "Dr. Priya Mehta",  speciality: "Pediatrician",  city: "Mumbai" },
+    { id: 4, name: "Dr. Suresh Patil", speciality: "Orthopedic",    city: "Thane" }
+];
 
-        // Show doctor info at top
-        if (selectedDoctor) {
-            document.getElementById("doctor-info").textContent =
-                `Booking for: ${selectedDoctor.name} (${selectedDoctor.speciality} - ${selectedDoctor.city})`;
-        } else {
-            document.getElementById("doctor-info").textContent = "Doctor not found.";
-        }
+// Get doctor from URL
+const urlParams = new URLSearchParams(window.location.search);
+const doctorId = parseInt(urlParams.get("id"));
 
-        // Load saved appointments from localStorage
-        function loadAppointments() {
-            const list = JSON.parse(localStorage.getItem("appointments")) || [];
-            const container = document.getElementById("appointments-list");
+const selectedDoctor = doctors.find(doc => doc.id === doctorId);
 
-            // Only show appointments for this doctor
-            const filtered = list.filter(a => a.doctorId === doctorId);
+document.getElementById("doctor-info").textContent =
+    selectedDoctor 
+    ? `Booking for: ${selectedDoctor.name} (${selectedDoctor.speciality} - ${selectedDoctor.city})`
+    : "Doctor not found";
 
-            if (filtered.length === 0) {
-                container.innerHTML = "<p style='color: gray;'>No appointments booked yet.</p>";
-                return;
-            }
+// Popup function
+function showPopup(message, type) {
+    const popup = document.getElementById("popup");
+    popup.textContent = message;
+    popup.className = "popup " + type;
+    popup.style.display = "block";
 
-            container.innerHTML = filtered.map((a, i) => `
-                <div style="border: 1px solid #ddd; padding: 10px; border-radius: 8px; margin: 8px 0; background: #f9f9f9;">
-                    <p><b>Name:</b> ${a.name}</p>
-                    <p><b>Phone:</b> ${a.phone}</p>
-                    <p><b>Date:</b> ${a.date}</p>
-                    <p><b>Doctor:</b> ${a.doctorName}</p>
-                </div>
-            `).join("");
-        }
+    setTimeout(() => {
+        popup.style.display = "none";
+    }, 3000);
+}
 
-        // Book appointment function
-        function bookAppointment() {
-            const name  = document.getElementById("name").value.trim();
-            const phone = document.getElementById("phone").value.trim();
-            const date  = document.getElementById("date").value;
+// Load appointments
+function loadAppointments() {
+    const list = JSON.parse(localStorage.getItem("appointments")) || [];
+    const container = document.getElementById("appointments-list");
 
-            const successMsg = document.getElementById("success-msg");
-            const errorMsg   = document.getElementById("error-msg");
+    const filtered = list.filter(a => a.doctorId === doctorId);
 
-            // Hide previous messages
-            successMsg.style.display = "none";
-            errorMsg.style.display   = "none";
+    if (filtered.length === 0) {
+        container.innerHTML = "<p style='color: gray;'>No appointments booked yet.</p>";
+        return;
+    }
 
-            // Validate fields
-            if (!name || !phone || !date) {
-                errorMsg.style.display = "block";
-                return;
-            }
+    container.innerHTML = filtered.map(a => `
+        <div>
+            <p><b>Name:</b> ${a.name}</p>
+            <p><b>Phone:</b> ${a.phone}</p>
+            <p><b>Date:</b> ${a.date}</p>
+        </div>
+    `).join("");
+}
 
-            // Validate phone (10 digits)
-            if (!/^\d{10}$/.test(phone)) {
-                errorMsg.textContent   = "❌ Please enter a valid 10-digit phone number.";
-                errorMsg.style.display = "block";
-                return;
-            }
+// Book appointment
+function bookAppointment() {
 
-            // Validate date (cannot be in the past)
-            const today    = new Date().toISOString().split("T")[0];
-            if (date < today) {
-                errorMsg.textContent   = "❌ Please select a future date.";
-                errorMsg.style.display = "block";
-                return;
-            }
+    // 🔐 Login check
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-            // Save appointment to localStorage (acts like a database)
-            const appointments = JSON.parse(localStorage.getItem("appointments")) || [];
-            appointments.push({
-                doctorId:   doctorId,
-                doctorName: selectedDoctor ? selectedDoctor.name : "Unknown",
-                name:       name,
-                phone:      phone,
-                date:       date
-            });
-            localStorage.setItem("appointments", JSON.stringify(appointments));
+    if (!isLoggedIn) {
+        showPopup("❌ Please login first!", "error");
+        return;
+    }
 
-            // Show success message
-            successMsg.style.display = "block";
+    const name  = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const date  = document.getElementById("date").value;
 
-            // Clear the form
-            document.getElementById("name").value  = "";
-            document.getElementById("phone").value = "";
-            document.getElementById("date").value  = "";
+    if (!name || !phone || !date) {
+        showPopup("❌ Fill all fields!", "error");
+        return;
+    }
 
-            // Refresh appointments list
-            loadAppointments();
-        }
+    if (!/^\d{10}$/.test(phone)) {
+        showPopup("❌ Enter valid phone number!", "error");
+        return;
+    }
 
-        // Allow Enter key to submit
-        document.addEventListener("keypress", function(e) {
-            if (e.key === "Enter") bookAppointment();
-        });
+    const today = new Date().toISOString().split("T")[0];
+    if (date < today) {
+        showPopup("❌ Select future date!", "error");
+        return;
+    }
 
-        // Load appointments on page open
-        loadAppointments();
-    </script>
+    const appointments = JSON.parse(localStorage.getItem("appointments")) || [];
+
+    appointments.push({
+        doctorId,
+        name,
+        phone,
+        date
+    });
+
+    localStorage.setItem("appointments", JSON.stringify(appointments));
+
+    showPopup("✅ Appointment booked!", "success");
+
+    document.getElementById("name").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("date").value = "";
+
+    loadAppointments();
+}
+
+// Load on start
+loadAppointments();
+
+</script>
 
 </body>
 </html>
