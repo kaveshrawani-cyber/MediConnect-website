@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor List</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="navbar">Doctor List</div>
+
+    <div class="container">
+        <h3>Filter by City:</h3>
+        <a class="btn" onclick="filterDoctors('Mumbai')">Mumbai</a>
+        <a class="btn" onclick="filterDoctors('Thane')">Thane</a>
+        <a class="btn" onclick="filterDoctors('All')">All</a>
+
+        <div class="grid" id="doctor-grid">
+            <!-- Doctors will be loaded here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // ✅ Add your doctors data here (replaces the database)
+        const doctors = [
+            {
+                id: 1,
+                name: "Dr. Ayesha Khan",
+                speciality: "Cardiologist",
+                city: "Mumbai",
+                address: "123 Marine Drive, Mumbai",
+                contact: "9876543210"
+            },
+            {
+                id: 2,
+                name: "Dr. Rahul Sharma",
+                speciality: "Dermatologist",
+                city: "Thane",
+                address: "45 Ghodbunder Road, Thane",
+                contact: "9123456780"
+            },
+            {
+                id: 3,
+                name: "Dr. Priya Mehta",
+                speciality: "Pediatrician",
+                city: "Mumbai",
+                address: "78 Bandra West, Mumbai",
+                contact: "9988776655"
+            },
+            {
+                id: 4,
+                name: "Dr. Suresh Patil",
+                speciality: "Orthopedic",
+                city: "Thane",
+                address: "12 Hiranandani, Thane",
+                contact: "9765432100"
+            },
+            // ✅ Add more doctors here...
+        ];
+
+        // Function to display doctors
+        function displayDoctors(list) {
+            const grid = document.getElementById("doctor-grid");
+
+            // Show message if no doctors found
+            if (list.length === 0) {
+                grid.innerHTML = "<p>No doctors found for this city.</p>";
+                return;
+            }
+
+            // Build doctor cards
+            grid.innerHTML = list.map(doctor => `
+                <div class="card">
+                    <h3>${doctor.name}</h3>
+                    <p><b>Speciality:</b> ${doctor.speciality}</p>
+                    <p><b>City:</b> ${doctor.city}</p>
+                    <p><b>Address:</b> ${doctor.address}</p>
+                    <p><b>Contact:</b> ${doctor.contact}</p>
+                    <a class="btn" href="appointment.html?id=${doctor.id}">Book</a>
+                </div>
+            `).join("");
+        }
+
+        // Function to filter by city
+        function filterDoctors(city) {
+            if (city === "All") {
+                displayDoctors(doctors);
+            } else {
+                const filtered = doctors.filter(doc => doc.city === city);
+                displayDoctors(filtered);
+            }
+        }
+
+        // Load all doctors when page opens
+        displayDoctors(doctors);
+    </script>
+
+</body>
+</html>
